@@ -1,0 +1,19 @@
+# Build artifacts
+target/
+
+# IDE files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Log files
+*.log
+
+# Configuration files with sensitive data
+*.prp
+!example.prp
+
+# License files
+*.lic

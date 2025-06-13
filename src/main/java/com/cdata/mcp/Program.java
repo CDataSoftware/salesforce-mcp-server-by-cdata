@@ -55,14 +55,22 @@ public class Program {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length < 1) {
-      System.err.println("Usage: <properties-file-path>");
-      System.exit(-1);
+    String path = null;
+    if (args.length >= 1) {
+      path = args[0];
+    } else {
+      // Check if we have required environment variables
+      if (System.getenv("CDATA_PREFIX") == null || 
+          System.getenv("CDATA_DRIVER_CLASS") == null ||
+          System.getenv("CDATA_JDBC_URL") == null) {
+        System.err.println("Usage: <properties-file-path>");
+        System.err.println("   OR: Set environment variables CDATA_PREFIX, CDATA_DRIVER_CLASS, and CDATA_JDBC_URL");
+        System.exit(-1);
+      }
     }
-    String path = args[0];
 
     final Program p = new Program();
-    p.init(args[0]);
+    p.init(path);
     p.configureMcp();
     if (!STDIO) {
       //p.runHttpServer();

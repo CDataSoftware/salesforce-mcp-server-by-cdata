@@ -52,6 +52,34 @@ This server wraps that driver and makes Salesforce data available through a simp
       Tables=
       ```
 
+## Alternative: Using Environment Variables
+
+Instead of using a `.prp` file, you can configure the server using environment variables. This is useful for containerized deployments or when you want to bundle the CData JAR inside the compiled JAR.
+
+### Environment Variables
+- `CDATA_PREFIX` - The prefix for exposed tools (e.g., "salesforce")
+- `CDATA_DRIVER_CLASS` - The JDBC driver class name (e.g., "cdata.jdbc.salesforce.SalesforceDriver")
+- `CDATA_DRIVER_PATH` - Path to the CData JAR file, or "resource:lib/cdata.jdbc.salesforce.jar" for bundled JARs
+- `CDATA_JDBC_URL` - The JDBC connection string
+- `CDATA_TABLES` - (Optional) Comma-separated list of tables to expose
+- `CDATA_LOG_FILE` - (Optional) Path to log file
+
+### Bundling the CData JAR
+To include the CData JAR in your compiled JAR:
+1. Create a `lib` directory in your project root
+2. Copy the CData JDBC driver JAR (e.g., `cdata.jdbc.salesforce.jar`) into the `lib` directory
+3. Build the project with `mvn clean install`
+4. The CData JAR will be bundled inside `CDataMCP-jar-with-dependencies.jar`
+
+### Running with Environment Variables
+```bash
+export CDATA_PREFIX="salesforce"
+export CDATA_DRIVER_CLASS="cdata.jdbc.salesforce.SalesforceDriver"
+export CDATA_DRIVER_PATH="resource:lib/cdata.jdbc.salesforce.jar"
+export CDATA_JDBC_URL="jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
+java -jar CDataMCP-jar-with-dependencies.jar
+```
+
 ## Using the Server with Claude Desktop
 1. Create the config file for Claude Desktop ( claude_desktop_config.json) to add the new MCP server, using the format below. If the file already exists, add the entry to the `mcpServers` in the config file.
 
@@ -85,6 +113,48 @@ This server wraps that driver and makes Salesforce data available through a simp
             ]
           },
           ...
+        }
+      }
+      ```
+      
+      **Using Environment Variables (Windows)**
+      ```json
+      {
+        "mcpServers": {
+          "salesforce": {
+            "command": "PATH\\TO\\java.exe",
+            "args": [
+              "-jar",
+              "PATH\\TO\\CDataMCP-jar-with-dependencies.jar"
+            ],
+            "env": {
+              "CDATA_PREFIX": "salesforce",
+              "CDATA_DRIVER_CLASS": "cdata.jdbc.salesforce.SalesforceDriver",
+              "CDATA_DRIVER_PATH": "resource:lib/cdata.jdbc.salesforce.jar",
+              "CDATA_JDBC_URL": "jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
+            }
+          }
+        }
+      }
+      ```
+      
+      **Using Environment Variables (Linux/Mac)**
+      ```json
+      {
+        "mcpServers": {
+          "salesforce": {
+            "command": "/PATH/TO/java",
+            "args": [
+              "-jar",
+              "/PATH/TO/CDataMCP-jar-with-dependencies.jar"
+            ],
+            "env": {
+              "CDATA_PREFIX": "salesforce",
+              "CDATA_DRIVER_CLASS": "cdata.jdbc.salesforce.SalesforceDriver",
+              "CDATA_DRIVER_PATH": "resource:lib/cdata.jdbc.salesforce.jar",
+              "CDATA_JDBC_URL": "jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
+            }
+          }
         }
       }
       ```

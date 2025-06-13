@@ -15,6 +15,18 @@
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/lib</directory>
+                <targetPath>lib</targetPath>
+                <includes>
+                    <include>*.jar</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
