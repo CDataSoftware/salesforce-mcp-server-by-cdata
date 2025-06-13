@@ -57,10 +57,10 @@ This server wraps that driver and makes Salesforce data available through a simp
 Instead of using a `.prp` file, you can configure the server using environment variables. This is useful for containerized deployments or when you want to bundle the CData JAR inside the compiled JAR.
 
 ### Environment Variables
-- `CDATA_PREFIX` - The prefix for exposed tools (e.g., "salesforce")
-- `CDATA_DRIVER_CLASS` - The JDBC driver class name (e.g., "cdata.jdbc.salesforce.SalesforceDriver")
-- `CDATA_DRIVER_PATH` - Path to the CData JAR file, or "resource:lib/cdata.jdbc.salesforce.jar" for bundled JARs
-- `CDATA_JDBC_URL` - The JDBC connection string
+- `CDATA_JDBC_URL` - **Required** - The JDBC connection string
+- `CDATA_PREFIX` - (Optional) The prefix for exposed tools (defaults to "salesforce")
+- `CDATA_DRIVER_CLASS` - (Optional) The JDBC driver class name (defaults to "cdata.jdbc.salesforce.SalesforceDriver")
+- `CDATA_DRIVER_PATH` - (Optional) Path to the CData JAR file (defaults to "resource:lib/cdata.jdbc.salesforce.jar" for bundled JARs)
 - `CDATA_TABLES` - (Optional) Comma-separated list of tables to expose
 - `CDATA_LOG_FILE` - (Optional) Path to log file
 
@@ -73,9 +73,14 @@ To include the CData JAR in your compiled JAR:
 
 ### Running with Environment Variables
 ```bash
-export CDATA_PREFIX="salesforce"
+# Minimal configuration - only JDBC URL is required
+export CDATA_JDBC_URL="jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
+java -jar CDataMCP-jar-with-dependencies.jar
+
+# Or with custom configuration
+export CDATA_PREFIX="myprefix"
 export CDATA_DRIVER_CLASS="cdata.jdbc.salesforce.SalesforceDriver"
-export CDATA_DRIVER_PATH="resource:lib/cdata.jdbc.salesforce.jar"
+export CDATA_DRIVER_PATH="/path/to/cdata.jdbc.salesforce.jar"
 export CDATA_JDBC_URL="jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
 java -jar CDataMCP-jar-with-dependencies.jar
 ```
@@ -128,9 +133,6 @@ java -jar CDataMCP-jar-with-dependencies.jar
               "PATH\\TO\\CDataMCP-jar-with-dependencies.jar"
             ],
             "env": {
-              "CDATA_PREFIX": "salesforce",
-              "CDATA_DRIVER_CLASS": "cdata.jdbc.salesforce.SalesforceDriver",
-              "CDATA_DRIVER_PATH": "resource:lib/cdata.jdbc.salesforce.jar",
               "CDATA_JDBC_URL": "jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
             }
           }
@@ -149,9 +151,6 @@ java -jar CDataMCP-jar-with-dependencies.jar
               "/PATH/TO/CDataMCP-jar-with-dependencies.jar"
             ],
             "env": {
-              "CDATA_PREFIX": "salesforce",
-              "CDATA_DRIVER_CLASS": "cdata.jdbc.salesforce.SalesforceDriver",
-              "CDATA_DRIVER_PATH": "resource:lib/cdata.jdbc.salesforce.jar",
               "CDATA_JDBC_URL": "jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
             }
           }

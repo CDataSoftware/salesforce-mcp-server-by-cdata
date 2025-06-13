@@ -60,11 +60,9 @@ public class Program {
       path = args[0];
     } else {
       // Check if we have required environment variables
-      if (System.getenv("CDATA_PREFIX") == null || 
-          System.getenv("CDATA_DRIVER_CLASS") == null ||
-          System.getenv("CDATA_JDBC_URL") == null) {
+      if (System.getenv("CDATA_JDBC_URL") == null) {
         System.err.println("Usage: <properties-file-path>");
-        System.err.println("   OR: Set environment variables CDATA_PREFIX, CDATA_DRIVER_CLASS, and CDATA_JDBC_URL");
+        System.err.println("   OR: Set environment variable CDATA_JDBC_URL (CDATA_PREFIX defaults to 'salesforce')");
         System.exit(-1);
       }
     }

@@ -47,13 +47,27 @@ public class Config {
 
   private void loadFromEnvironment() {
     String prefix = System.getenv("CDATA_PREFIX");
-    if (prefix != null) props.setProperty(PREFIX, prefix);
+    if (prefix != null) {
+      props.setProperty(PREFIX, prefix);
+    } else if (!props.containsKey(PREFIX)) {
+      props.setProperty(PREFIX, "salesforce");
+    }
     
     String driverClass = System.getenv("CDATA_DRIVER_CLASS");
-    if (driverClass != null) props.setProperty(DRIVER, driverClass);
+    if (driverClass != null) {
+      props.setProperty(DRIVER, driverClass);
+    } else if (prefix != null && !props.containsKey(DRIVER)) {
+      // Set default driver class if not already set
+      props.setProperty(DRIVER, "cdata.jdbc.salesforce.SalesforceDriver");
+    }
     
     String driverPath = System.getenv("CDATA_DRIVER_PATH");
-    if (driverPath != null) props.setProperty(DRIVER_JAR, driverPath);
+    if (driverPath != null) {
+      props.setProperty(DRIVER_JAR, driverPath);
+    } else if (prefix != null && !props.containsKey(DRIVER_JAR)) {
+      // Set default bundled JAR path if not already set
+      props.setProperty(DRIVER_JAR, "resource:lib/cdata.jdbc.salesforce.jar");
+    }
     
     String jdbcUrl = System.getenv("CDATA_JDBC_URL");
     if (jdbcUrl != null) props.setProperty(JDBC_URL, jdbcUrl);
