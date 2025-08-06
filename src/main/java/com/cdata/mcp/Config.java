@@ -53,20 +53,24 @@ public class Config {
       props.setProperty(PREFIX, "salesforce");
     }
     
-    String driverClass = System.getenv("CDATA_DRIVER_CLASS");
-    if (driverClass != null) {
-      props.setProperty(DRIVER, driverClass);
-    } else if (prefix != null && !props.containsKey(DRIVER)) {
-      // Set default driver class if not already set
-      props.setProperty(DRIVER, "cdata.jdbc.salesforce.SalesforceDriver");
-    }
-    
     String driverPath = System.getenv("CDATA_DRIVER_PATH");
     if (driverPath != null) {
       props.setProperty(DRIVER_JAR, driverPath);
-    } else if (prefix != null && !props.containsKey(DRIVER_JAR)) {
-      // Set default bundled JAR path if not already set
-      props.setProperty(DRIVER_JAR, "resource:lib/cdata.jdbc.salesforce.jar");
+    } else if (!props.containsKey(DRIVER_JAR)) {
+      // Set default to "bundled" to indicate classes are in the classpath
+      props.setProperty(DRIVER_JAR, "bundled");
+    }
+    
+    String driverClass = System.getenv("CDATA_DRIVER_CLASS");
+    if (driverClass != null) {
+      props.setProperty(DRIVER, driverClass);
+    } else if (!props.containsKey(DRIVER)) {
+      // Set default driver class based on whether we're using bundled JAR
+      String jarPath = props.getProperty(DRIVER_JAR);
+      if ("bundled".equals(jarPath)) {
+        // For bundled JAR, we know it's the Salesforce driver
+        props.setProperty(DRIVER, "cdata.jdbc.salesforce.SalesforceDriver");
+      }
     }
     
     String jdbcUrl = System.getenv("CDATA_JDBC_URL");
@@ -86,12 +90,16 @@ public class Config {
       result = false;
     }
 
+    // Driver class is required unless using bundled JAR with known driver
+    String driverJar = getDriverJar();
     if (isNullOrEmpty(getDriver())) {
-      errors.println("The '" + DRIVER + "' option is missing");
-      result = false;
+      if (!"bundled".equals(driverJar)) {
+        errors.println("The '" + DRIVER + "' option is missing");
+        result = false;
+      }
     }
 
-    if (isNullOrEmpty(getDriverJar())) {
+    if (isNullOrEmpty(driverJar)) {
       errors.println("The '" + DRIVER_JAR + "' option is missing");
       result = false;
     } else if (!verifyDriverLoad(errors)) {
@@ -173,6 +181,18 @@ public class Config {
   private boolean verifyDriverLoad(PrintStream errors) {
     String driverJar = getDriverJar();
     
+    // Check if it's bundled (classes already in classpath)
+    if (driverJar.equals("bundled")) {
+      try {
+        loadDriver();
+        return true;
+      } catch (Throwable t) {
+        String msg = t.getClass().getName() + ": " + t.getMessage();
+        errors.println("Attempting to load the bundled JDBC driver failed: " + msg);
+        return false;
+      }
+    }
+    
     // First check if it's a bundled resource
     if (driverJar.startsWith("resource:")) {
       try {
@@ -213,31 +233,35 @@ public class Config {
 
   private void loadDriver() throws Exception {
     String driverJar = this.getDriverJar();
-    URLClassLoader ucl;
     
-    if (driverJar.startsWith("resource:")) {
+    if (driverJar.equals("bundled")) {
+      // Classes are already in the classpath, load directly
+      Class dc = Class.forName(this.getDriver());
+      this.driver = (Driver)dc.getDeclaredConstructor().newInstance();
+    } else if (driverJar.startsWith("resource:")) {
       // Load from bundled resources
       String resourcePath = driverJar.substring("resource:".length());
       URL resourceUrl = this.getClass().getClassLoader().getResource(resourcePath);
       if (resourceUrl == null) {
         throw new IOException("Resource not found: " + resourcePath);
       }
-      ucl = new URLClassLoader(
+      URLClassLoader ucl = new URLClassLoader(
           new URL[] { resourceUrl },
           this.getClass().getClassLoader()
       );
+      Class dc = ucl.loadClass(this.getDriver());
+      this.driver = (Driver)dc.getDeclaredConstructor().newInstance();
     } else {
       // Load from file system
-      ucl = new URLClassLoader(
+      URLClassLoader ucl = new URLClassLoader(
           new URL[] {
               new File(driverJar).toURI().toURL(),
           },
           this.getClass().getClassLoader()
       );
+      Class dc = ucl.loadClass(this.getDriver());
+      this.driver = (Driver)dc.getDeclaredConstructor().newInstance();
     }
-    
-    Class dc = ucl.loadClass(this.getDriver());
-    this.driver = (Driver)dc.getDeclaredConstructor().newInstance();
 
     loadSqlInfo();
   }

@@ -1,7 +1,7 @@
 # salesforce-mcp-server-by-cdata
 CData's Model Context Protocol (MCP) Server for Salesforce
 
-:heavy_exclamation_mark: This project builds a read-only MCP server. For full read, write, update, delete, and action capabilities and a simplified setup, check out our free [CData MCP Server for Salesforce (beta)](https://www.cdata.com/download/download.aspx?sku=RFZK-V&type=beta). 
+:heavy_exclamation_mark: This project builds a read-only MCP server. For full read, write, update, delete, and action capabilities and a simplified setup, check out our free [CData MCP Server for Salesforce (beta)](https://www.cdata.com/download/download.aspx?sku=RFZM-V&type=beta). 
 ## Purpose
 We created this read-only MCP Server to allow LLMs (like Claude Desktop) to query live data Salesforce supported by the [CData JDBC Driver for Salesforce](https://www.cdata.com/drivers/salesforce/jdbc).
 
@@ -59,8 +59,8 @@ Instead of using a `.prp` file, you can configure the server using environment v
 ### Environment Variables
 - `CDATA_JDBC_URL` - **Required** - The JDBC connection string
 - `CDATA_PREFIX` - (Optional) The prefix for exposed tools (defaults to "salesforce")
-- `CDATA_DRIVER_CLASS` - (Optional) The JDBC driver class name (defaults to "cdata.jdbc.salesforce.SalesforceDriver")
-- `CDATA_DRIVER_PATH` - (Optional) Path to the CData JAR file (defaults to "resource:lib/cdata.jdbc.salesforce.jar" for bundled JARs)
+- `CDATA_DRIVER_CLASS` - (Optional) The JDBC driver class name (defaults to "cdata.jdbc.salesforce.SalesforceDriver" when using bundled JAR)
+- `CDATA_DRIVER_PATH` - (Optional) Path to the CData JAR file (if not specified, uses bundled classes)
 - `CDATA_TABLES` - (Optional) Comma-separated list of tables to expose
 - `CDATA_LOG_FILE` - (Optional) Path to log file
 
@@ -69,7 +69,9 @@ To include the CData JAR in your compiled JAR:
 1. Create a `lib` directory in your project root
 2. Copy the CData JDBC driver JAR (e.g., `cdata.jdbc.salesforce.jar`) into the `lib` directory
 3. Build the project with `mvn clean install`
-4. The CData JAR will be bundled inside `CDataMCP-jar-with-dependencies.jar`
+4. The CData JDBC driver classes will be unpacked and included directly in `CDataMCP-jar-with-dependencies.jar`
+
+Note: The maven-shade-plugin will automatically extract and include all classes from the CData JAR during the build process.
 
 ### Running with Environment Variables
 ```bash
@@ -79,8 +81,8 @@ java -jar CDataMCP-jar-with-dependencies.jar
 
 # Or with custom configuration
 export CDATA_PREFIX="myprefix"
-export CDATA_DRIVER_CLASS="cdata.jdbc.salesforce.SalesforceDriver"
-export CDATA_DRIVER_PATH="/path/to/cdata.jdbc.salesforce.jar"
+export CDATA_DRIVER_PATH="/path/to/cdata.jdbc.salesforce.jar"  # Only needed if not using bundled JAR
+export CDATA_DRIVER_CLASS="cdata.jdbc.salesforce.SalesforceDriver"  # Only needed if not using bundled JAR
 export CDATA_JDBC_URL="jdbc:salesforce:InitiateOAuth=GETANDREFRESH;"
 java -jar CDataMCP-jar-with-dependencies.jar
 ```
