@@ -16,4 +16,5 @@ target/
 !example.prp
 
 # License files
-*.licdependency-reduced-pom.xml
+*.lic
+dependency-reduced-pom.xml
